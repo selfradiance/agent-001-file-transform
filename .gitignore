@@ -4,4 +4,5 @@ dist/
 *_PROJECT_CONTEXT.md
 agent-identity*.json
 process-template*.md
+examples/sample-output.json
 .DS_Store
