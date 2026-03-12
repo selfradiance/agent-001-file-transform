@@ -1,8 +1,7 @@
 {
   "name": "agent-001-file-transform",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "A bonded file-transform agent governed by AgentGate's bond-and-slash model",
   "scripts": {
     "agent": "tsx src/cli.ts",
     "loop": "tsx src/loop-test.ts",
@@ -13,7 +12,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "devDependencies": {
     "@types/node": "^25.4.0",
