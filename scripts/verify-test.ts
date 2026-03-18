@@ -1,5 +1,5 @@
 import path from "node:path";
-import { computeHash, verifyOutput } from "./verify";
+import { computeHash, verifyOutput } from "../src/verify";
 
 const filePath = path.resolve("examples/sample-output.json");
 

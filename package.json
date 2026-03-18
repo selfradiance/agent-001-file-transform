@@ -4,11 +4,11 @@
   "description": "A bonded file-transform agent governed by AgentGate's bond-and-slash model",
   "scripts": {
     "agent": "tsx src/cli.ts",
-    "loop": "tsx src/loop-test.ts",
-    "ping": "tsx src/ping-test.ts",
+    "loop": "tsx scripts/loop-test.ts",
+    "ping": "tsx scripts/ping-test.ts",
     "test": "vitest run",
-    "transform-test": "tsx src/transform-test.ts",
-    "verify-test": "tsx src/verify-test.ts"
+    "transform-test": "tsx scripts/transform-test.ts",
+    "verify-test": "tsx scripts/verify-test.ts"
   },
   "keywords": [],
   "author": "",

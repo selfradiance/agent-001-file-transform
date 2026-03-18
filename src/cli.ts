@@ -15,6 +15,10 @@ import { AgentGateClient, generateKeypair } from "./agentgate-client";
 import { csvToJson } from "./transform";
 import { computeHash, verifyOutput } from "./verify";
 
+// AgentGate applies a 1.2x risk multiplier to declared exposure.
+// Reverse-engineer the max declarable exposure that fits within the bond.
+const AGENTGATE_RISK_MULTIPLIER = 1.2;
+
 const BASE_URL = process.env.AGENTGATE_URL ?? "http://127.0.0.1:3000";
 const API_KEY = process.env.AGENTGATE_REST_KEY;
 
@@ -48,7 +52,7 @@ async function main() {
 
   // 1. Create identity
   const keys = generateKeypair();
-  const { identityId } = await client.createIdentity(keys.publicKey);
+  const { identityId } = await client.createIdentity(keys.publicKey, keys.privateKey);
   console.log(`\nIdentity created: ${identityId}`);
 
   // 2. Lock bond
@@ -68,7 +72,7 @@ async function main() {
     bondId,
     "file-transform",
     contract,
-    Math.floor(contract.bond_amount_cents / 1.2),
+    Math.floor(contract.bond_amount_cents / AGENTGATE_RISK_MULTIPLIER),
     keys.publicKey,
     keys.privateKey,
   );

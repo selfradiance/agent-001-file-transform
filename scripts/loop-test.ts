@@ -8,7 +8,7 @@
  */
 
 import "dotenv/config";
-import { AgentGateClient, generateKeypair, printStep } from "./agentgate-client";
+import { AgentGateClient, generateKeypair, printStep } from "../src/agentgate-client";
 
 const BASE_URL = process.env.AGENTGATE_URL ?? "http://127.0.0.1:3000";
 const API_KEY = process.env.AGENTGATE_REST_KEY;
@@ -25,7 +25,7 @@ async function main() {
   console.log("Generated Ed25519 keypair");
   console.log("  publicKey:", keys.publicKey);
 
-  const { identityId, raw: identityResult } = await client.createIdentity(keys.publicKey);
+  const { identityId, raw: identityResult } = await client.createIdentity(keys.publicKey, keys.privateKey);
   printStep("Step 1: Create Identity", identityResult);
   console.log(`  identityId: ${identityId}`);
 

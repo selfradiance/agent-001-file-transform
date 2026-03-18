@@ -16,13 +16,16 @@ function base64UrlToBase64(value: string): string {
 // Signing helpers (replicated from AgentGate signing.ts)
 // ---------------------------------------------------------------------------
 
-function buildSignedMessage(timestamp: string, body: unknown): Buffer {
-  return createHash("sha256").update(`${timestamp}${JSON.stringify(body)}`).digest();
+function buildSignedMessage(nonce: string, method: string, path: string, timestamp: string, body: unknown): Buffer {
+  return createHash("sha256").update(`${nonce}${method}${path}${timestamp}${JSON.stringify(body)}`).digest();
 }
 
 function signRequest(
   publicKeyBase64: string,
   privateKeyBase64: string,
+  nonce: string,
+  method: string,
+  path: string,
   timestamp: string,
   body: unknown,
 ): string {
@@ -39,7 +42,7 @@ function signRequest(
     format: "jwk",
   });
 
-  const signature = sign(null, buildSignedMessage(timestamp, body), privateKey);
+  const signature = sign(null, buildSignedMessage(nonce, method, path, timestamp, body), privateKey);
   return signature.toString("base64");
 }
 
@@ -96,8 +99,13 @@ export class AgentGateClient {
       body: JSON.stringify(body),
     });
 
-    const responseBody = await response.json();
-    return { status: response.status, statusText: response.statusText, body: responseBody as Record<string, unknown> };
+    let responseBody: Record<string, unknown>;
+    try {
+      responseBody = await response.json() as Record<string, unknown>;
+    } catch {
+      responseBody = { error: "UNPARSEABLE_RESPONSE", message: await response.text().catch(() => "(empty)") };
+    }
+    return { status: response.status, statusText: response.statusText, body: responseBody };
   }
 
   async signedPost(
@@ -106,14 +114,15 @@ export class AgentGateClient {
     publicKey: string,
     privateKey: string,
   ): Promise<ApiResponse> {
+    const nonce = randomUUID();
     const timestamp = Date.now().toString();
-    const signature = signRequest(publicKey, privateKey, timestamp, body);
+    const signature = signRequest(publicKey, privateKey, nonce, "POST", path, timestamp, body);
 
     const response = await fetch(new URL(path, this.baseUrl), {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "x-nonce": randomUUID(),
+        "x-nonce": nonce,
         "x-agentgate-key": this.apiKey,
         "x-agentgate-timestamp": timestamp,
         "x-agentgate-signature": signature,
@@ -121,12 +130,17 @@ export class AgentGateClient {
       body: JSON.stringify(body),
     });
 
-    const responseBody = await response.json();
-    return { status: response.status, statusText: response.statusText, body: responseBody as Record<string, unknown> };
+    let responseBody: Record<string, unknown>;
+    try {
+      responseBody = await response.json() as Record<string, unknown>;
+    } catch {
+      responseBody = { error: "UNPARSEABLE_RESPONSE", message: await response.text().catch(() => "(empty)") };
+    }
+    return { status: response.status, statusText: response.statusText, body: responseBody };
   }
 
-  async createIdentity(publicKey: string): Promise<{ identityId: string; raw: ApiResponse }> {
-    const result = await this.unsignedPost("/v1/identities", { publicKey });
+  async createIdentity(publicKey: string, privateKey: string): Promise<{ identityId: string; raw: ApiResponse }> {
+    const result = await this.signedPost("/v1/identities", { publicKey }, publicKey, privateKey);
 
     const identityId = result.body.identityId ?? result.body.id;
     if (typeof identityId !== "string") {

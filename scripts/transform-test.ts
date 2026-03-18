@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { csvToJson } from "./transform";
+import { csvToJson } from "../src/transform";
 
 const inputPath = path.resolve("examples/sample-input.csv");
 const outputPath = path.resolve("examples/sample-output.json");
